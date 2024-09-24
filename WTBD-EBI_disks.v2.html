@@ -1,0 +1,330 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WTBD Generator for X200 HDD at Genomics England</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            height: 100vh;
+            margin: 0;
+        }
+        .input-container {
+            width: 33%;
+        }
+        .wtbd-container {
+            width: 65%;
+        }
+        .wtbd-field {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 200px;
+            box-sizing: border-box;
+            height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        button {
+            margin-top: 30px;
+        }
+        select, input {
+            display: block;
+            margin-bottom: 10px;
+            padding: 5px;
+            width: 100%;
+        }
+    </style>
+    
+    <style>
+        .highlight {
+            background-color: yellow;
+        }
+        .default-highlight {
+            background-color: rgba(62, 188, 223, 0.733);
+        }
+    </style>
+
+    <script>
+        // Customer contact information
+        const customerContacts = {
+            "Anca-Ramon Vilau": {
+                email: "anca.ramona.vilau@nephostechnologies.com",
+                phone: "+44 (0)749 531 7003"
+            },
+            "Pavi Arumugam": {
+                email: "pavithra.arumugam@nephostechnologies.com",
+                phone: "+44 (0)738 402 7172"
+            },
+            "Solomon Stephen": {
+                email: "solomon.stephen@nephostechnologies.com",
+                phone: "+44 (0)777 663 7058"
+            },
+            "Ayodele Jegede": {
+                email: "ayodele.Jegede@nephostechnologies.com",
+                phone: "+44 (0)749 878 1999"
+            },
+            "Ryan Haylock": {
+                email: "ryan.haylock@nephostechnologies.com",
+                phone: "+44 (0)794 601 1003"
+            },
+        };
+
+        // Tech support contacts information
+        const techSupportContacts = {
+            "Benoit": {
+                phone: "+33(0)624 307 500",
+                email: "benoit.faure@quantum.com"
+            },
+            "Patrick": {
+                phone: "+33(0)141 434 862",
+                email: "patrick.reichert@quantum.com"
+            },
+            "Eric": {
+                phone: "+33(0)629 813 819",
+                email: "eric.fandos@quantum.com"
+            }
+        };
+
+        // Function to populate customer dropdown
+        function populateCustomerDropdown() {
+            const customerSelect = document.getElementById('customerName');
+            for (const customer in customerContacts) {
+                const option = document.createElement('option');
+                option.value = customer;
+                option.textContent = customer;
+                customerSelect.appendChild(option);
+            }
+        }
+
+        // Function to populate primary contact dropdown
+        function populatePrimaryContactDropdown() {
+            const primaryContactSelect = document.getElementById('primaryContact');
+            for (const contact in techSupportContacts) {
+                const option = document.createElement('option');
+                option.value = contact;
+                option.textContent = contact;
+                primaryContactSelect.appendChild(option);
+            }
+        }
+
+        // Function to handle selection of primary contact and update secondary contact options
+        function updateSecondaryOptions() {
+            const primaryContact = document.getElementById("primaryContact").value;
+            const secondaryContactSelect = document.getElementById('secondaryContact');
+            
+            // Clear previous options in the secondary dropdown
+            secondaryContactSelect.innerHTML = '<option value="" disabled selected>Select a secondary contact</option>';
+            
+            // Populate the secondary dropdown excluding the primary contact
+            for (const contact in techSupportContacts) {
+                if (contact !== primaryContact) {
+                    const option = document.createElement('option');
+                    option.value = contact;
+                    option.textContent = contact;
+                    secondaryContactSelect.appendChild(option);
+                }
+            }
+
+            updateResult(); // Update the WTBD result
+        }
+
+        // Function to format dates
+        function formatDate(dateString) {
+            const options = { month: 'short', day: '2-digit' };
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        // Function to update the WTBD result based on input values
+        function updateResult() {
+            const customerName = document.getElementById("customerName").value;
+            const nodeHostname = document.getElementById("nodeHostname").value || "<span class='highlight'>NodeName TBD</span>";
+            const enclosureType = document.getElementById("enclosureType").value || "<span class='highlight'>Enclosure type TBD</span>";
+            const slotNumber = document.getElementById("slotNumber").value;
+            const chassisSerial = document.getElementById("chassisSerial").value ? "- Chassis s/n " + document.getElementById("chassisSerial").value : "";
+            const diskSerial = document.getElementById("diskSerial").value || "<span class='highlight'>s/n TBD</span>";
+            const hddPN = document.getElementById("hddPN").value || "<span class='highlight'>TBD</span>";
+            const partETA = document.getElementById("partETA").value;
+            const feETA = document.getElementById("feETA").value;
+
+            const formattedPartETA = partETA ? formatDate(partETA) : "<span class='default-highlight'>already on site</span>";
+            const formattedFeETA = feETA ? formatDate(feETA) : "<span class='default-highlight'>ASAP - arrange a date with the customer contact</span>";
+
+            const primaryContact = document.getElementById("primaryContact").value;
+            const primaryContactInfo = techSupportContacts[primaryContact];
+
+            const secondaryContact = document.getElementById("secondaryContact").value;
+            const secondaryContactInfo = techSupportContacts[secondaryContact];
+
+            // Prepare customer contact and primary contact information
+            const customerInfo = customerContacts[customerName];
+            const customerContactText = customerInfo 
+                ? `(1.) ${customerName} | ${customerInfo.email} | ${customerInfo.phone}`
+                : "(1.) <span class='highlight'>Customer contact information is not available.</span>";
+
+            const primaryContactText = primaryContactInfo 
+                ? `Primary contact => QUANTUM TechSupport ${primaryContact}. Phone: ${primaryContactInfo.phone} - Email: ${primaryContactInfo.email}`
+                : "<span class='highlight'>Primary TechSupport contact information is not available.</span>";
+
+            const secondaryContactText = secondaryContactInfo 
+                ? `Secondary contact => QUANTUM TechSupport ${secondaryContact}. Phone: ${secondaryContactInfo.phone} - Email: ${secondaryContactInfo.email}`
+                :""
+
+            // Site addresses
+            const siteAddresses = {
+                "Site1": "Ark Data Centres, Spring Park, P2, Westwells Rd, Corsham, SN13 9GB, United Kingdom",
+                "Site2": "Ark Data Centres  (A103), Cody Park South Gate, Old Ively Road, Farnborough, GU14 0LH (use postcode GU14 0LL for the location of the South Gate), United Kingdom",
+                "Site3": "Equinix - LD7,  1 Banbury Avenue, Slough, SL1 4LH,  United Kingdom"
+            };
+            const site = nodeHostname.split('-')[0]; // Extracts the site from the node hostname
+
+
+            // Update the WTBD result field
+            const resultText = `
+                HDD replacement - X200 - ${enclosureType} ${nodeHostname} Slot ${slotNumber} - s/n ${diskSerial}<br><br>
+                Please contact Quantum Tech Support if required<br>
+                ${primaryContactText}<br>
+                ${secondaryContactText}<br><br>
+                Quantum Tech Support can be reached at 00800-9999-3822 from EMEA<br><br>
+                [ETA] <br>
+                ${formattedFeETA}<br>
+                [END ETA]<br><br>
+                [CUSTOMER CONTACTS] <br>
+                ${customerContactText}<br>
+                (2.) ${siteAddresses[site] || "<span class='highlight'>Site address not available</span>"}<br>
+                [END CONTACTS]<br><br>
+                [PREP] <br>
+                (1.) /!\\ Please email customer and copy primary Quantum contact ASAP to provide tech ID and phone number.<br>
+                (2.) X200 Support Guide from Quantum.com<br>
+                [END PREP]<br><br>
+                [PARTS] <br>
+                (1.) Part ETA = ${formattedPartETA}<br>
+                (2.) P/N: ${hddPN}<br>
+                [END PARTS]<br><br>
+                [ACTIONS] <br>
+                (1.) Identify the failed HDD with a faulty red LED, and confirm it matches with: <br>
+                ${enclosureType} ${nodeHostname} ${chassisSerial} - Slot ${slotNumber} - HDD s/n ${diskSerial}<br>
+                (2a.) If the serial number is the expected one, replace with the new disk.<br>
+                (2b.) If the serial number is not the expected one or the failed drive does not match with the expected location, contact Quantum tech support.<br>
+                [END ACTIONS]<br><br>
+                [VERIFICATION] <br>
+                (1.) Ensure no amber LED stays on.<br>
+                (2.) Check general system health.<br>
+                (3.) Inform Quantum tech support the disk replacement is done.<br>
+                [END VERIFICATION]
+            `;
+
+            document.getElementById("result").innerHTML = resultText;
+        }
+
+        // Function to copy WTBD text to clipboard
+        function copyToClipboard2() {
+            const resultText = document.getElementById("result").innerText;
+            
+            // Create a temporary <textarea> element to copy the text
+            const textArea = document.createElement("textarea");
+            textArea.value = resultText;
+            
+            // Append the temporary textarea to the page
+            document.body.appendChild(textArea);
+            
+            // Select the text inside the textarea
+            textArea.select();
+            
+            // Copy the selected text to the clipboard
+            document.execCommand('copy');
+            
+            // Remove the temporary textarea from the page
+            document.body.removeChild(textArea);
+ //           alert('Text copied to clipboard');
+        }
+
+        // Populate dropdowns when the page loads
+        window.onload = function() {
+            populateCustomerDropdown();
+            populatePrimaryContactDropdown();
+        };
+    </script>
+</head>
+
+<body>
+    <div class="input-container">
+        <h2>Input Fields</h2>
+
+        <!-- Customer Name Dropdown -->
+        <label for="customerName">Customer Name:</label>
+        <select id="customerName" onchange="updateResult()">
+            <option value="" disabled selected>Select a customer</option>
+            <!-- Options will be populated by JavaScript -->
+        </select>
+
+        <!-- Node Hostname Input -->
+        <label for="nodeHostname">Node Hostname:</label>
+        <input type="text" id="nodeHostname" placeholder="e.g. Site2-R05-C01-CMB05" oninput="updateResult()">
+
+        <!-- Twin node or JBOD Input -->
+        <label for="enclosureType">Twin node or JBOD Input:</label>
+        <select id="enclosureType" onchange="updateResult()">
+            <option value="" disabled selected>Select TwinServer of JBOD </option>
+            <option value="Server NODE ">Twin Server</option>
+            <option value="JBOD attached to node ">JBOD</option> 
+        </select>
+
+        <!-- Chassis Serial Number Input -->
+        <label for="chassisSerial">Chassis Serial Number (optional):</label>
+        <input type="text" id="chassisSerial" placeholder="Chassis s/n" oninput="updateResult()">
+
+        <!-- Slot Number Input -->
+        <label for="slotNumber">Slot Number:</label>
+        <input type="number" id="slotNumber" min="0" max="89" placeholder="Slot number" oninput="updateResult()">
+
+        <!-- Disk Serial Number Input -->
+        <label for="diskSerial">Disk Serial Number:</label>
+        <input type="text" id="diskSerial" placeholder="e.g. 3WHD7MSJ" oninput="updateResult()">
+
+        <!-- HDD P/N Dropdown -->
+        <label for="hddPN">HDD P/N:</label>
+        <select id="hddPN" onchange="updateResult()">
+            <option value="" disabled selected>Select HDD P/N</option>
+            <option value="9-07566-01 - CRU/SPARE,ACTIVESCALE X200,DRIVE W/CARRIER,HDD,3.5,18TB NLSAS,512E,SED">18TB - 9-07566-01</option>
+            <option value="9-08202-02 - CRU/SPARE,ACTIVESCALE X200,DRIVE W/CARRIER,HDD,3.5,22TB NLSAS,512E,SED">22TB - 9-08202-02</option> 
+        </select>
+
+        <!-- Part ETA Input -->
+        <label for="partETA">Part ETA (<span class='default-highlight'>no value</span> == already on site):</label>
+        <input type="date" id="partETA" value="" onchange="updateResult()">
+
+        <!-- Field Engineer ETA Input -->
+        <label for="feETA">Field Engineer ETA: (<span class='default-highlight'>no value</span> == asap):</label>
+        <input type="date" id="feETA" value="" onchange="updateResult()">
+
+        <!-- Primary Tech Support Contact Dropdown -->
+        <label for="primaryContact">Primary Tech Support Contact:</label>
+        <select id="primaryContact" onchange="updateSecondaryOptions()">
+            <option value="" disabled selected>Select a primary contact</option>
+            <!-- Options will be populated by JavaScript -->
+        </select>
+
+       <!-- Secondary Tech Support Contact Dropdown -->
+       <label for="secondaryContact">Secondary Tech Support Contact:</label>
+       <select id="secondaryContact" onchange="updateResult()">
+           <option value="" disabled selected>Select a secondary contact (optional)</option>
+           <!-- Options will be populated by JavaScript -->
+       </select>
+    </div>
+
+    <!-- WTBD Result Display -->
+    <div class="wtbd-container">
+        <h2>WTBD for X200 disk replacement at Genomics England</h2>
+        <button onclick="copyToClipboard2()">Copy to Clipboard</button>
+        <div class="wtbd-field" id="result">
+            [WTBD will appear here]
+        </div>
+    </div>
+</body>
